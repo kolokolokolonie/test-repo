@@ -1,0 +1,442 @@
+AWS Documentation » AWS CodeDeploy » User Guide » Service and Product Integrations with AWS CodeDeploy » Tutorial: Using AWS CodeDeploy to Deploy an Application from GitHub
+Tutorial: Using AWS CodeDeploy to Deploy an Application from GitHub
+
+In this tutorial, you'll use AWS CodeDeploy to deploy one of our sample application revisions from GitHub to a single Amazon EC2 instance running Amazon Linux, a single Red Hat Enterprise Linux (RHEL) instance, or a single Windows Server instance. For general information about GitHub integration with AWS CodeDeploy, see GitHub Integration.
+
+Note
+
+You can also use AWS CodeDeploy to deploy an application revision from GitHub to an Ubuntu Server instance. You can use the sample revision described in Step 2 of the On-Premises Instance Deployment (Windows Server, Ubuntu Server, or RHEL) tutorial, or you create a revision compatible with an Ubuntu Server instance and AWS CodeDeploy. To create your own revision, see Plan a Revision and Add an AppSpec File.
+
+Topics
+
+    Prerequisites
+    Step 1: Set Up a GitHub Account
+    Step 2: Create a GitHub Repository
+    Step 3: Upload a Sample Application to Your GitHub Repository
+    Step 4: Provision an Instance
+    Step 5: Deploy the Application to the Instance
+    Step 6: Monitor and Verify the Deployment
+    Step 7: Clean Up
+
+Prerequisites
+
+Before you start this tutorial, you should review the following requirements.
+
+    Install Git on your local machine. To install Git, see Git Downloads.
+
+    Complete the steps in Setting Up, including installing and configuring the AWS CLI. This is especially important if you want to use the AWS CLI to deploy a revision from GitHub to the instance.
+
+Step 1: Set Up a GitHub Account
+
+You will need a GitHub account to create a GitHub repository where the revision you want to deploy will be stored. If you already have a GitHub account, skip ahead to Step 2: Create a GitHub Repository.
+
+    Go to https://github.com/join.
+
+    Type a user name, your email address, and a password.
+
+    Choose Create an account, and then follow the on-screen instructions to complete the sign-up process.
+
+    On the final page, choose Take me to my dashboard. If your GitHub dashboard does not appear, go to https://github.com/dashboard.
+
+Step 2: Create a GitHub Repository
+
+You will need a GitHub repository to store the revision you want to deploy.
+
+If you already have a GitHub repository, be sure to substitute its name for CodeDeployGitHubDemo throughout this tutorial, and then skip ahead to Step 3: Upload a Sample Application to Your GitHub Repository.
+
+    From your GitHub dashboard, do one of the following:
+
+        In Your repositories, choose New repository.
+
+        On the navigation bar, choose Create new (the plus symbol (+)), and then choose New repository.
+
+    In the Repository name box, type CodeDeployGitHubDemo.
+
+    With the Public option selected, select the Initialize this repository with a README box, and then choose Create repository.
+
+    Note
+
+    Leaving the default Public option selected means that anyone can see this repository. Although you can select the Private option to limit who can see and commit to the repository, this option may result in additional charges from GitHub.
+
+    Follow the on-screen instructions to use the command line to create the new repository. For example:
+
+    For Linux, OS X, or Unix:
+
+        From the terminal, run the following commands, one at a time, where user-name is your GitHub user name:
+
+        mkdir /tmp/CodeDeployGitHubDemo
+        cd /tmp/CodeDeployGitHubDemo
+        touch README.md
+        git init
+        git add README.md
+        git commit -m "My first commit"
+        git remote add origin https://github.com/user-name/CodeDeployGitHubDemo.git
+        git push -u origin master
+
+        Leave the command prompt open in the /tmp/CodeDeployGitHubDemo location.
+
+    For Windows:
+
+        From a command prompt running as an administrator, run the following commands, one at a time:
+
+        mkdir c:\temp\CodeDeployGitHubDemo
+        cd c:\temp\CodeDeployGitHubDemo
+        notepad README.md
+
+        In Notepad, save the README.md file. Close Notepad. Run the following commands, one at a time, where user-name is your GitHub user name:
+
+        git init
+        git add README.md
+        git commit -m "My first commit"
+        git remote add origin https://github.com/user-name/CodeDeployGitHubDemo.git
+        git push -u origin master
+
+        Leave the command prompt open in the c:\temp\CodeDeployGitHubDemo location.
+
+Step 3: Upload a Sample Application to Your GitHub Repository
+
+In this step, you will copy a sample revision from a public Amazon S3 bucket to your GitHub repository.
+
+Note
+
+You can use one of your revisions instead of our sample revision. If so, your revision must:
+
+    Follow the guidelines in Plan a Revision and Add an AppSpec File.
+
+    Work with the corresponding instance type.
+
+    Be accessible from your GitHub dashboard.
+
+If your revision meets these requirements, skip ahead to Step 5: Deploy the Application to the Instance.
+
+If you're deploying to an Ubuntu Server instance, you'll need to upload to your GitHub repository a revision compatible with an Ubuntu Server instance and AWS CodeDeploy. For more information, see Plan a Revision and Add an AppSpec File.
+
+With your terminal or administrative command prompt still open in, for example, the /tmp/CodeDeployGitHubDemo location (for Linux, OS X, or Unix) or c:\temp\CodeDeployGitHubDemo (for Windows), run the following commands, one at a time:
+
+To push our sample revision to an Amazon EC2 instance running Amazon Linux or RHEL:
+
+(Amazon S3 copy command)
+git add SampleApp_Linux.zip
+git commit -m "Added Linux sample app"
+git push
+
+Where (Amazon S3 copy command) is one of the following:
+
+    aws s3 cp s3://aws-codedeploy-us-east-1/samples/latest/SampleApp_Linux.zip . --region us-east-1 for the US East (N. Virginia) region
+
+    aws s3 cp s3://aws-codedeploy-us-west-2/samples/latest/SampleApp_Linux.zip . --region us-west-2 for the US West (Oregon) region
+
+    aws s3 cp s3://aws-codedeploy-eu-west-1/samples/latest/SampleApp_Linux.zip . --region eu-west-1 for the EU (Ireland) region
+
+    aws s3 cp s3://aws-codedeploy-ap-southeast-2/samples/latest/SampleApp_Linux.zip . --region ap-southeast-2 for the Asia Pacific (Sydney) region
+
+    aws s3 cp s3://aws-codedeploy-ap-northeast-1/samples/latest/SampleApp_Linux.zip . ---region ap-northeast-1 for the Asia Pacific (Tokyo) region
+
+To push our sample revision to a Windows Server instance:
+
+(Amazon S3 copy command)
+git add SampleApp_Windows.zip
+git commit -m "Added Windows sample app"
+git push
+
+Where (Amazon S3 copy command) is one of the following:
+
+    aws s3 cp s3://aws-codedeploy-us-east-1/samples/latest/SampleApp_Windows.zip . --region us-east-1 for the US East (N. Virginia) region
+
+    aws s3 cp s3://aws-codedeploy-us-west-2/samples/latest/SampleApp_Windows.zip . --region us-west-2 for the US West (Oregon) region
+
+    aws s3 cp s3://aws-codedeploy-eu-west-1/samples/latest/SampleApp_Windows.zip . --region eu-west-1 for the EU (Ireland) region
+
+    aws s3 cp s3://aws-codedeploy-ap-southeast-2/samples/latest/SampleApp_Windows.zip . --region ap-southeast-2 for the Asia Pacific (Sydney) region
+
+    aws s3 cp s3://aws-codedeploy-ap-northeast-1/samples/latest/SampleApp_Windows.zip . --region ap-northeast-1 for the Asia Pacific (Tokyo) region
+
+To push your own revision to an Ubuntu Server instance, copy your revision into your local repo, and then call the following:
+
+git add your-revision-file-name
+git commit -m "Added Ubuntu app"
+git push
+
+Step 4: Provision an Instance
+
+In this step, you will create an Amazon EC2 instance running Amazon Linux or a Windows Server, Ubuntu Server, or RHEL instance configured for use in AWS CodeDeploy deployments. Follow the instructions in Configure Instances, and then return to this page. If you already have an instance configured for use in AWS CodeDeploy deployments, go to the next step.
+
+After you have successfully launched the instance and verified the AWS CodeDeploy agent is running, go to the next step.
+
+Step 5: Deploy the Application to the Instance
+
+In this step, you will use the AWS CodeDeploy console or the AWS CLI to deploy the sample revision from your GitHub repository to your instance. If you're using one of our sample revisions to deploy to an Amazon EC2 instance running Amazon Linux , a RHEL instance, or a Windows Server instance, our sample revision deploys a single web page to the instance.
+
+To deploy the revision (AWS CodeDeploy console)
+
+    Sign in to the AWS Management Console and open the AWS CodeDeploy console at https://console.aws.amazon.com/codedeploy.
+
+    Note
+
+    Sign in with the same account or IAM user information you used in Setting Up.
+
+    If the Applications page is not displayed, on the AWS CodeDeploy service navigation bar, choose Applications.
+
+    Choose Create New Application.
+
+    In the Application Name box, type CodeDeployGitHubDemo-App.
+
+    In the Deployment Group Name box, type CodeDeployGitHubDemo-DepGrp.
+
+    If you're deploying to an Amazon EC2 instance, choose Amazon EC2 from the Tag Type drop-down list. In the Key and Value boxes, type the Amazon EC2 instance tag key and value that was applied to your Amazon EC2 instance as part of Step 4: Provision an Instance.
+
+    If you're deploying to an on-premises instance, choose On-Premises Instance from the Tag Type drop-down list. In the Key and Value boxes, type the on-premises instance tag key and value that was applied to your on-premises instance as part of Step 4: Provision an Instance.
+
+    In the Deployment Config drop-down list, leave the default of CodeDeployDefault.OneAtATime.
+
+    In the Service Role ARN drop-down list, choose the service role ARN. (Follow the instructions in Get the Service Role ARN (IAM Console) to find the service role ARN.)
+
+    Choose Create Application.
+
+    On the application details page, in Deployment Groups, choose the drop-down arrow next to CodeDeployGitHubDemo-DepGrp.
+
+    Choose Deploy New Revision.
+
+    On the Create New Deployment page, next to Revision Type, choose My application is stored in GitHub.
+
+    Click Connect with GitHub. A new web page appears, prompting you to authorize AWS CodeDeploy to interact with GitHub for the application named CodeDeployGitHubDemo-App.
+
+    Note
+
+    If you see a Reconnect with GitHub link instead of a Connect with GitHub button, this is expected behavior. Do not click the link. Continue to the next step. For information about why this happens, see GitHub Authentication with Applications in AWS CodeDeploy.
+
+    If you see a blank web page that briefly appears and then disappears, and you do not see a Reconnect with GitHub link or a Connect with GitHub button, this also expected behavior. Continue to the next step. For information about why this happens, see GitHub Authentication with Applications in AWS CodeDeploy.
+
+    Follow the on-screen instructions on the Sign in page to sign in with your GitHub account.
+
+    On the Authorize application page, choose Authorize application. The web page disappears.
+
+    Back in the Create New Deployment page, in the Repository Name box, type the GitHub user name you used to sign in, followed by a forward slash (/), followed by the name of the repository where you pushed your application revision (for example, My-GitHub-User-Name/CodeDeployGitHubDemo).
+
+    If you are unsure of the value to type, or if you want to specify a different repository:
+
+        In a separate web browser tab, go to your GitHub dashboard.
+
+        In Your repositories, hover your mouse pointer over the target repository name. A tooltip appears, displaying the GitHub user or organization name, followed by a forward slash character (/), followed by the name of the repository. Type this displayed value into the Repository Name box.
+
+        Tip
+
+        If the target repository name is not displayed in Your repositories, use the Search GitHub box to find the target repository and corresponding GitHub user or organization name.
+
+    In the Commit ID box, type the ID of the commit associated with the push of your application revision to GitHub.
+
+    If you are unsure of the value to type:
+
+        In a separate web browser tab, go to your GitHub dashboard.
+
+        In Your repositories, click CodeDeployGitHubDemo.
+
+        Tip
+
+        If the target repository name is not displayed in Your repositories, use the Search GitHub box to find the target repository and corresponding GitHub user or organization name, and then click on the target repository's name.
+
+        In the list of commits, find and copy the commit ID associated with the push of your application revision to GitHub. This ID is typically 40 characters in length and consists of both letters and numbers. (Do not use the shorter version of the commit ID, which is typically the first 10 characters of the longer version.)
+
+        Paste the commit ID into the Commit ID box.
+
+    Leave the Deployment Description box blank.
+
+    Leave the Deployment Config drop-down list at the default of CodeDeployDefault.OneAtATime, and choose Deploy Now. Status information about the newly created deployment will be displayed.
+
+Now that you've used the AWS CodeDeploy console to deploy the revision to the instance, you can skip ahead to Step 6: Monitor and Verify the Deployment.
+
+To deploy the revision (AWS CLI)
+
+    Call the create-application command to create an application in AWS CodeDeploy named CodeDeployGitHubDemo-App:
+
+    aws deploy create-application --application-name CodeDeployGitHubDemo-App
+
+    Call the create-deployment-group command to create a deployment group named CodeDeployGitHubDemo-DepGrp:
+
+        If you're deploying to an Amazon EC2 instance, EC2-tag-key is the Amazon EC2 instance tag key that was applied to your Amazon EC2 instance as part of Step 4: Provision an Instance.
+
+        If you're deploying to an Amazon EC2 instance, EC2-tag-value is the Amazon EC2 instance tag value that was applied to your Amazon EC2 instance as part of Step 4: Provision an Instance.
+
+        If you're deploying to an on-premises instance, on-premise-tag-key is the on-premises instance tag key that was applied to your on-premises instance as part of Step 4: Provision an Instance.
+
+        If you're deploying to an on-premises instance, on-premise-tag-value is the on-premises instance tag value that was applied to your on-premises instance as part of Step 4: Provision an Instance.
+
+        service-role-ARN is a service role ARN. (Follow the instructions in Get the Service Role ARN (AWS CLI) to find the service role ARN.)
+
+    aws deploy create-deployment-group --application-name CodeDeployGitHubDemo-App --ec2-tag-filters Key=EC2-tag-key,Type=KEY_AND_VALUE,Value=EC2-tag-value --on-premises-tag-filters Key=on-premises-tag-key,Type=KEY_AND_VALUE,Value=on-premises-tag-value --deployment-group-name CodeDeployGitHubDemo-DepGrp --service-role-arn service-role-ARN
+
+    Before you can call any AWS CLI commands that interact with GitHub (such as the create-deployment command, which you will call next), you must give AWS CodeDeploy permission to interact with GitHub on behalf of your GitHub user account for the CodeDeployGitHubDemo-App application. Currently, the only way to do this is through the AWS CodeDeploy console.
+
+    Sign in to the AWS Management Console and open the AWS CodeDeploy console at https://console.aws.amazon.com/codedeploy.
+
+    Note
+
+    Sign in with the same account or IAM user information you used in Setting Up.
+
+    On the AWS CodeDeploy service navigation bar, choose Deployments.
+
+    Choose Create New Deployment.
+
+    Note
+
+    You will not be creating a new deployment. This is currently the only way to give AWS CodeDeploy permission to interact with GitHub on behalf of your GitHub user account.
+
+    From the Application drop-down list, choose CodeDeployGitHubDemo-App.
+
+    From the Deployment Group drop-down list, choose CodeDeployGitHubDemo-DepGrp.
+
+    Next to Revision Type, choose My application revision is stored in GitHub.
+
+    Choose Connect With GitHub.
+
+    Note
+
+    If you see a Reconnect with GitHub link instead of a Connect with GitHub button, this is expected behavior. Do not click the link. Continue to the next step. For information about why this happens, see GitHub Authentication with Applications in AWS CodeDeploy.
+
+    If you see a blank web page that briefly appears and then disappears, and you don't see a Reconnect with GitHub link or a Connect with GitHub button, this also expected behavior. Continue to the next step. For information about why this happens, see GitHub Authentication with Applications in AWS CodeDeploy.
+
+    Follow the on-screen instructions on the Sign in page to sign in with your GitHub user name or email and password.
+
+    On the Authorize application page, choose Authorize application. The web page disappears.
+
+    On the Create New Deployment page, choose Cancel.
+
+    Call the create-deployment command to deploy the revision from your GitHub repository to the instance, where:
+
+        repository is your GitHub account name, followed by a forward-slash (/), followed by the name of your repository (CodeDeployGitHubDemo), for example, MyGitHubUserName/CodeDeployGitHubDemo.
+
+        If you are unsure of the value to use, or if you want to specify a different repository:
+
+            In a separate web browser tab, go to your GitHub dashboard.
+
+            In Your repositories, hover your mouse pointer over the target repository name. A tooltip appears, displaying the GitHub user or organization name, followed by a forward slash (/), followed by the name of the repository. This is the value to use.
+
+            Tip
+
+            If the target repository name does not not appear Your repositories, use the Search GitHub box to find the target repository and corresponding GitHub user or organization name.
+
+        commitId is the commit associated with the version of the application revision you pushed to your repository (for example, f835159a...528eb76f).
+
+        If you are unsure of the value to use:
+
+            In a separate web browser tab, go to your GitHub dashboard.
+
+            In Your repositories, choose CodeDeployGitHubDemo.
+
+            Tip
+
+            If the target repository name is not displayed in Your repositories, use the Search GitHub box to find the target repository and corresponding GitHub user or organization name, and then click on the target repository's name.
+
+            In the list of commits, find the commit ID associated with the push of your application revision to GitHub. This ID is typically 40 characters in length and consists of both letters and numbers. (Do not use the shorter version of the commit ID, which is typically the first 10 characters of the longer version.) Use this value.
+
+    For Linux, OS X, or Unix:
+
+    aws deploy create-deployment \
+      --application-name CodeDeployGitHubDemo-App \
+      --deployment-config-name CodeDeployDefault.OneAtATime \
+      --deployment-group-name CodeDeployGitHubDemo-DepGrp \
+      --description "My GitHub deployment demo" \
+      --github-location repository=repository,commitId=commitId
+
+    For Windows:
+
+    aws deploy create-deployment --application-name CodeDeployGitHubDemo-App --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name CodeDeployGitHubDemo-DepGrp --description "My GitHub deployment demo" --github-location repository=repository,commitId=commitId
+
+Step 6: Monitor and Verify the Deployment
+
+In this step, you will use either the AWS CodeDeploy console or the AWS CLI to verify the success of the deployment. You will use your web browser to view the web page that was deployed to each Amazon EC2 instance running Amazon Linux or Windows Server or RHEL instance.
+
+Note
+
+If you're deploying to an Ubuntu Server instance, use your own testing strategy to determine whether the deployed revision works as expected on the instance, and then go to the next step.
+
+To monitor and verify the deployment (AWS CodeDeploy console)
+
+    If the Deployments page is not displayed, in the AWS CodeDeploy service navigation bar, choose Deployments.
+
+    In the list of deployments, look for the row with an Application value of CodeDeployGitHubDemo-App and a Deployment Group value of CodeDeployGitHubDemo-DepGrp. If Succeeded or Failed does not appear in the Status column, click the refresh button periodically.
+
+    If Failed appears in the Status column, follow the instructions in View Instance Details with the Console to troubleshoot the deployment.
+
+    If Succeeded appears in the Status column, you can now verify the deployment through your web browser. Our sample revision deploys a single web page to the instance. If you're deploying to an Amazon EC2 instance, in your web browser, go to http://PublicDNS for the instance (for example, http://ec2-01-234-567-890.compute-1.amazonaws.com).
+
+    If you can see the web page, then congratulations! Now that you've successfully used AWS CodeDeploy to deploy a revision from GitHub, you can skip ahead to Step 7: Clean Up.
+
+To monitor and verify the deployment (AWS CLI)
+
+    Call the list-deployments command to get the deployment ID for the application named CodeDeployGitHubDemo-App and the deployment group named CodeDeployGitHubDemo-DepGrp:
+
+    aws deploy list-deployments --application-name CodeDeployGitHubDemo-App --deployment-group-name CodeDeployGitHubDemo-DepGrp --query "deployments" --output text
+
+    Call the get-deployment command, supplying the ID of the deployment that was output from the list-deployments command:
+
+    aws deploy get-deployment --deployment-id deployment-ID --query "deploymentInfo.[status, creator]" --output text
+
+    If Failed is returned, you can try troubleshooting the deployment by following the instructions in View Instance Details with the Console.
+
+    If Succeeded is returned, you can now try verifying the deployment through your web browser. Our sample revision deploys a single web page to the instance which, if you're deploying to an Amazon EC2 instance, you can view in your web browser by going to http://PublicDNS for the Amazon EC2 instance, for example http://ec2-01-234-567-890.compute-1.amazonaws.com.
+
+    If you can see the web page, then congratulations! You have successfully used AWS CodeDeploy to deploy from your GitHub repository.
+
+Step 7: Clean Up
+
+To avoid further charges for resources you used during this tutorial, you must terminate any Amazon EC2 instance you launched and its associated resources. Optionally, you can delete the AWS CodeDeploy deployment component records associated with this tutorial. If you were using a GitHub repository just for this tutorial, you can delete it now, too.
+To delete a AWS CloudFormation stack (if you used our AWS CloudFormation template to create an Amazon EC2 instance)
+
+    Sign in to the AWS Management Console and open the AWS CloudFormation console at https://console.aws.amazon.com/cloudformation/.
+
+    In the Stack Name column, select the box next to the stack starting with CodeDeploySampleStack.
+
+    Choose Delete Stack.
+
+    When prompted, choose Yes, Delete. The Amazon EC2 instance and the associated IAM instance profile and service role will be deleted.
+
+To manually deregister and clean up an on-premises instance (if you provisioned an on-premises instance)
+
+    Use the AWS CLI to call the deregister command against the on-premises instance represented here by your-instance-name and the associated region represented here by your-region:
+
+    aws deploy deregister --instance-name your-instance-name --delete-iam-user --region your-region
+
+    From the on-premises instance, call the uninstall command:
+
+    aws deploy uninstall
+
+To manually terminate an Amazon EC2 instance (if you manually launched an Amazon EC2 instance)
+
+    Sign in to the AWS Management Console and open the Amazon EC2 console at https://console.aws.amazon.com/ec2/.
+
+    In the navigation pane, under Instances, choose Instances.
+
+    Select the box next to the Amazon EC2 instance you want to terminate. Choose Actions, point to Instance State, and then choose Terminate.
+
+    When prompted, choose Yes, Terminate. 
+
+To delete the AWS CodeDeploy deployment component records
+
+    Sign in to the AWS Management Console and open the AWS CodeDeploy console at https://console.aws.amazon.com/codedeploy.
+
+    Note
+
+    Sign in with the same account or IAM user information you used in Setting Up.
+
+    If the Applications page is not displayed, in the AWS CodeDeploy service navigation bar, choose Applications.
+
+    Choose CodeDeployGitHubDemo-App.
+
+    Choose Delete Application.
+
+    When prompted, choose Delete. 
+
+To delete your GitHub repository
+
+    Open your GitHub dashboard.
+
+    In Your repositories, choose CodeDeployGitHubDemo.
+
+    In the repository navigation pane, choose Settings.
+
+    In Danger Zone, choose Delete this repository.
+
+    When prompted, type CodeDeployGitHubDemo, and then choose I understand the consequences, delete this repository.
+
+    On your local computer, delete the /tmp/CodeDeployGitHubDemo folder and its contents (for Linux, OS X, or Unix) or the c:\temp\CodeDeployGitHubDemo folder and its contents (for Windows).
